@@ -131,3 +131,5 @@ dmypy.json
 resources/*.png
 resources/*.jpeg
 resources/*.jpg
+resources/token
+tmp*
