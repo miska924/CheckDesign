@@ -7,7 +7,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-SINGLE_IMAGE_PIXELS = 10000
+SINGLE_IMAGE_PIXELS = 100000
 
 
 def scale(source: Image, pixels_count=SINGLE_IMAGE_PIXELS):

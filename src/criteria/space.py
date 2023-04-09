@@ -7,7 +7,7 @@ def space(source: Image):
     w_orig, h_orig = source.size
     area_orig = w_orig * h_orig
 
-    tmp = scale(source)
+    tmp = scale(source, 10000)
     w, h = tmp.size
 
     tmp = tmp.convert("L")

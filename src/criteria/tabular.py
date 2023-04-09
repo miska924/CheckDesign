@@ -32,16 +32,16 @@ def tabular(source: Image):
     for i, value in enumerate(contrasts):
         if i > 0 and value > TREASHOLD:
             left_tabular = i
-            for y in range(h):
-                res.putpixel((i, y), 255)
+            for x in range(w):
+                res.putpixel((x, left_tabular), 255)
             break
 
     right_tabular = None
     for i, value in enumerate(reversed(contrasts)):
         if i > 0 and value > TREASHOLD:
             right_tabular = i
-            for y in range(h):
-                res.putpixel((w - right_tabular - 1, y), 255)
+            for x in range(w):
+                res.putpixel((x, h - right_tabular - 1), 255)
             break
 
     tmp_tmp = tmp.resize([w, 1], resample=Image.LINEAR)
@@ -51,16 +51,16 @@ def tabular(source: Image):
     for i, value in enumerate(contrasts):
         if i > 0 and value > TREASHOLD:
             up_tabular = i
-            for x in range(w):
-                res.putpixel((x, i), 255)
+            for y in range(h):
+                res.putpixel((up_tabular, y), 255)
             break
 
     down_tabular = None
     for i, value in enumerate(reversed(contrasts)):
         if i > 0 and value > TREASHOLD:
             down_tabular = i
-            for x in range(w):
-                res.putpixel((x, h - down_tabular - 1), 255)
+            for y in range(h):
+                res.putpixel((w - down_tabular - 1, y), 255)
             break
 
     tmp = res
