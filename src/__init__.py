@@ -1,6 +1,7 @@
+import argparse
 import logging
+import os
 import tempfile
-from os import environ
 
 from telegram import Update
 from telegram.ext import (
@@ -21,35 +22,51 @@ logging.basicConfig(
 )
 
 
-async def downloader(update, context):
-    source = None
-    with tempfile.NamedTemporaryFile() as tmp_in, tempfile.NamedTemporaryFile() as tmp_out:
-        file = await context.bot.get_file(update.message.document)
-        await file.download_to_drive(tmp_in.name)
+def load_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    file = context.bot.getFile(update.message.document)
+    return file
 
-        source = Image.open(tmp_in).convert("RGB")
+
+def load_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    file = context.bot.getFile(update.message.photo[-1])
+    return file
+
+
+async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_function):
+    source = None
+    with tempfile.NamedTemporaryFile() as tmp:
+        file = await load_function(update=update, context=context)
+        await file.download_to_drive(tmp.name)
+
+        source = Image.open(tmp).convert("RGB")
+        source.save("last.jpg")
 
         space_rate, space_mask = space(source)
-
-        Image.blend(source, space_mask, alpha=0.7).save(tmp_out.name, "JPEG")
-
-        await context.bot.send_photo(
-            chat_id=update.effective_chat.id, photo=tmp_out.name
-        )
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=f"Space {int(space_rate * 100)}%"
-        )
-
         tabular_check, tabular_mask = tabular(source)
-        Image.blend(source, tabular_mask, alpha=0.7).save(tmp_out.name, "JPEG")
+
+        reply = Image.new("RGB", (source.width * 2, source.height))
+        reply.paste(Image.blend(source, space_mask, alpha=0.7), (0, 0))
+        reply.paste(Image.blend(source, tabular_mask, alpha=0.7), (source.width, 0))
+        reply.save(tmp.name, "JPEG")
 
         await context.bot.send_photo(
-            chat_id=update.effective_chat.id, photo=tmp_out.name
-        )
-        await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"Tabular {100 * tabular_check // 4}%",
+            photo=tmp.name,
+            caption=os.linesep.join(
+                [
+                    f"Space {int(space_rate * 100)}%",
+                    f"Tabular {100 * tabular_check // 4}%",
+                ]
+            ),
         )
+
+
+async def check_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await check(update=update, context=context, load_function=load_document)
+
+
+async def check_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await check(update=update, context=context, load_function=load_photo)
 
 
 async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -63,15 +80,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == "__main__":
-    token = environ.get("TOKEN")
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--token", dest="token", type=str, help="Provide telegram bot token"
+    )
+    args = parser.parse_args()
 
-    application = ApplicationBuilder().token(token).build()
+    application = ApplicationBuilder().token(args.token).build()
 
     start_handler = CommandHandler("start", start)
 
-    message_handler = MessageHandler(filters.Document.ALL, downloader)
+    image_document_handler = MessageHandler(filters.Document.IMAGE, check_document)
+    image_photo_handler = MessageHandler(filters.PHOTO, check_photo)
 
     application.add_handler(start_handler)
-    application.add_handler(message_handler)
+    application.add_handler(image_document_handler)
+    application.add_handler(image_photo_handler)
 
     application.run_polling()
