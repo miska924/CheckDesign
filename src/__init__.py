@@ -45,8 +45,8 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_functio
         tabular_check, tabular_mask = tabular(source)
 
         reply = Image.new("RGB", (source.width * 2, source.height))
-        reply.paste(Image.blend(source, space_mask, alpha=0.2), (0, 0))
-        reply.paste(Image.blend(source, tabular_mask, alpha=0.2), (source.width, 0))
+        reply.paste(Image.blend(source, space_mask, alpha=0.9), (0, 0))
+        reply.paste(Image.blend(source, tabular_mask, alpha=0.9), (source.width, 0))
         reply.save(tmp.name, "JPEG")
 
         await context.bot.send_photo(
