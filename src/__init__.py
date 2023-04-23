@@ -39,7 +39,6 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_functio
         await file.download_to_drive(tmp.name)
 
         source = Image.open(tmp).convert("RGB")
-        source.save("last.jpg")
 
         space_rate, space_mask = space(source)
         tabular_check, tabular_mask = tabular(source)
