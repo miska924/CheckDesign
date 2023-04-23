@@ -50,6 +50,18 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_functio
         reply.save(tmp.name, "JPEG")
 
         await context.bot.send_photo(
+            reply_to_message_id=update.message.id,
+            chat_id=update.effective_chat.id,
+            photo=tmp.name,
+            caption=os.linesep.join(
+                [
+                    f"Количество воздуха: {int(space_rate * 100)}%",
+                    f"Согласованность отступов: {100 * tabular_check // 4}%",
+                ]
+            ),
+        )
+
+        await context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=tmp.name,
             caption=os.linesep.join(
