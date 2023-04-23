@@ -85,4 +85,4 @@ def tabular(source: Image):
     logging.info(down_tabular)
     logging.info(f"tabular_ok == {tabular_status}")
 
-    return tabular_status, tmp.convert("RGB")
+    return tabular_status, Image.blend(source, tmp.convert("RGB"), alpha=0.7)
