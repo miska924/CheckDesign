@@ -9,6 +9,6 @@ RUN ls /check-design -la
 RUN pip3 install --no-cache-dir -r /check-design/requirements.txt
 
 RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
-# RUN apt-get install libleptonica-dev tesseract-ocr tesseract-ocr-dev libtesseract-dev python3-pil tesseract-ocr-eng tesseract-ocr-script-latn -y
+RUN apt install tesseract-ocr libtesseract-dev -y
 
 ENTRYPOINT [ "python3" , "-m", "src"]
