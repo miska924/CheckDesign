@@ -14,8 +14,9 @@ from telegram.ext import (
 
 from PIL import Image
 
-from criteria.space import space
-from criteria.tabular import tabular
+from src.criteria.space import space
+from src.criteria.tabular import tabular
+from src.criteria.palete import find_main_colors
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -42,10 +43,12 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_functio
 
         space_rate, space_mask = space(source)
         tabular_check, tabular_mask = tabular(source)
+        palete = find_main_colors(source)
 
-        reply = Image.new("RGB", (source.width * 2, source.height))
-        reply.paste(space_mask, (0, 0))
-        reply.paste(tabular_mask, (source.width, 0))
+        reply = Image.new("RGB", (source.width * 2, source.height + palete.height))
+        reply.paste(palete, (0, 0))
+        reply.paste(space_mask, (0, palete.height))
+        reply.paste(tabular_mask, (source.width, palete.height))
         reply.save(tmp.name, "JPEG")
 
         await context.bot.send_photo(
@@ -79,7 +82,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--token", dest="token", type=str, help="Provide telegram bot token"
@@ -98,3 +101,6 @@ if __name__ == "__main__":
     application.add_handler(image_photo_handler)
 
     application.run_polling()
+
+if __name__ == "__main__":
+    main()

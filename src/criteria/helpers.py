@@ -1,6 +1,7 @@
 import logging
 
 from PIL import Image
+import numpy as np
 
 
 logging.basicConfig(
@@ -31,3 +32,9 @@ def scale(source: Image, pixels_count=SINGLE_IMAGE_PIXELS):
     result = result.resize(size=[w, h], resample=Image.LINEAR)
 
     return result
+
+def find_contrasting_color(image: np.ndarray) -> tuple:
+    avg_color_per_row = np.average(image, axis=0)
+    avg_color = np.average(avg_color_per_row, axis=0)
+    contrasting_color = tuple([255 - c for c in avg_color])
+    return contrasting_color

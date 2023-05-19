@@ -3,3 +3,4 @@ tqdm==4.65.0
 python-telegram-bot==20.2
 matplotlib==3.7.1
 opencv-python==4.7.0.72
+scikit_learn==1.2.2
