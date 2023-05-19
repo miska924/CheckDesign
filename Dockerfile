@@ -1,9 +1,13 @@
 FROM python:3.9
 
-COPY src /check-design/
+WORKDIR /check-design
+
+COPY src /check-design/src
 COPY requirements.txt /check-design/requirements.txt
 
 RUN ls /check-design -la
 RUN pip3 install --no-cache-dir -r /check-design/requirements.txt
 
-ENTRYPOINT [ "python3" , "/check-design/__init__.py"]
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+
+ENTRYPOINT [ "python3" , "-m", "src"]
