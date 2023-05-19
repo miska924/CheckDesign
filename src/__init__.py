@@ -40,55 +40,66 @@ def load_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_function):
-    source = None
-    with tempfile.NamedTemporaryFile() as tmp:
-        file = await load_function(update=update, context=context)
-        await file.download_to_drive(tmp.name)
+    try:
+        source = None
+        with tempfile.NamedTemporaryFile() as tmp:
+            file = await load_function(update=update, context=context)
+            await file.download_to_drive(tmp.name)
 
-        source = Image.open(tmp).convert("RGB")
+            source = Image.open(tmp).convert("RGB")
 
-        space_rate, space_mask = space(source)
-        tabular_check, tabular_mask = tabular(source)
-        palete = find_main_colors(source)
-        text_length = get_text_length(source)
+            space_rate, space_mask = space(source)
+            tabular_check, tabular_mask = tabular(source)
+            palete = find_main_colors(source)
+            text_length = get_text_length(source)
 
-        reply = Image.new("RGB", (source.width * 2, source.height * 2))
-        reply.paste(source, (0, 0))
-        reply.paste(palete, (source.width, 0))
-        reply.paste(space_mask, (0, palete.height))
-        reply.paste(tabular_mask, (source.width, palete.height))
-        reply.save(tmp.name, "JPEG")
+            reply = Image.new("RGB", (source.width * 2, source.height * 2))
+            reply.paste(source, (0, 0))
+            reply.paste(palete, (source.width, 0))
+            reply.paste(space_mask, (0, palete.height))
+            reply.paste(tabular_mask, (source.width, palete.height))
+            reply.save(tmp.name, "JPEG")
 
-        report = []
+            report = []
 
-        if space_rate < SPACE_THRESHOLD:
-            report.append(f"{len(report) + 1}. Обратите внимание на количество воздуха, на изображении слишком мало пустого места.")
+            if space_rate < SPACE_THRESHOLD:
+                report.append(
+                    f"{len(report) + 1}. Обратите внимание на количество воздуха, на изображении слишком мало пустого места."
+                )
 
-        if tabular_check < TABULAR_CRIT_THRESHOLD:
-            report.append(f"{len(report) + 1}. Обратите внимание на отступы, постарайтесь придерживаться равномерной сетки.")
-        elif tabular_check < TABULAR_WARN_THRESHOLD:
-            report.append(f"{len(report) + 1}. Обратите чуть больше внимания на отступы, похоже, что они разные по вертикали и горизонтали.")
+            if tabular_check < TABULAR_CRIT_THRESHOLD:
+                report.append(
+                    f"{len(report) + 1}. Обратите внимание на отступы, постарайтесь придерживаться равномерной сетки."
+                )
+            elif tabular_check < TABULAR_WARN_THRESHOLD:
+                report.append(
+                    f"{len(report) + 1}. Обратите чуть больше внимания на отступы, похоже, что они разные по вертикали и горизонтали."
+                )
 
-        if text_length > TEXT_LEN_THRESHOLD:
-            report.append(f"{len(report) + 1}. На изображении слишком много текста, избыток информации плохо сказывается на качестве дизайна.")
+            if text_length > TEXT_LEN_THRESHOLD:
+                report.append(
+                    f"{len(report) + 1}. На изображении слишком много текста, избыток информации плохо сказывается на качестве дизайна."
+                )
 
-        if report:
+            if report:
+                report = ["Рекомендации:"] + report
+
             report = [
-                "Рекомендации:"
-            ] + report     
+                f"Количество воздуха: {int(space_rate * 100)}%",
+                f"Согласованность отступов: {int(100 * tabular_check)}%",
+            ] + report
 
-        report = [
-            f"Количество воздуха: {int(space_rate * 100)}%",
-            f"Согласованность отступов: {int(100 * tabular_check)}%",
-        ] + report
-
-        await context.bot.send_photo(
+            await context.bot.send_photo(
+                reply_to_message_id=update.message.id,
+                chat_id=update.effective_chat.id,
+                photo=tmp.name,
+                caption=(os.linesep + os.linesep).join(report),
+            )
+    except Exception:
+        await context.bot.send_message(
             reply_to_message_id=update.message.id,
             chat_id=update.effective_chat.id,
-            photo=tmp.name,
-            caption=(os.linesep + os.linesep).join(
-                report
-            ),
+            caption="Просим прощения, что-то пошло не так.",
         )
 
 
@@ -129,6 +140,7 @@ def main():
     application.add_handler(image_photo_handler)
 
     application.run_polling()
+
 
 if __name__ == "__main__":
     main()
