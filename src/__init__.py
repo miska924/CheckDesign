@@ -99,7 +99,7 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_functio
         await context.bot.send_message(
             reply_to_message_id=update.message.id,
             chat_id=update.effective_chat.id,
-            caption="Просим прощения, что-то пошло не так.",
+            text="Просим прощения, что-то пошло не так.",
         )
 
 
