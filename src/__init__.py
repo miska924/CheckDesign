@@ -17,6 +17,12 @@ from PIL import Image
 from src.criteria.space import space
 from src.criteria.tabular import tabular
 from src.criteria.palete import find_main_colors
+from src.criteria.text import get_text_length
+
+SPACE_THRESHOLD = 0.4
+TABULAR_CRIT_THRESHOLD = 0.2
+TABULAR_WARN_THRESHOLD = 0.7
+TEXT_LEN_THRESHOLD = 250
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -44,22 +50,44 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_functio
         space_rate, space_mask = space(source)
         tabular_check, tabular_mask = tabular(source)
         palete = find_main_colors(source)
+        text_length = get_text_length(source)
 
-        reply = Image.new("RGB", (source.width * 2, source.height + palete.height))
-        reply.paste(palete, (0, 0))
+        reply = Image.new("RGB", (source.width * 2, source.height * 2))
+        reply.paste(source, (0, 0))
+        reply.paste(palete, (source.width, 0))
         reply.paste(space_mask, (0, palete.height))
         reply.paste(tabular_mask, (source.width, palete.height))
         reply.save(tmp.name, "JPEG")
+
+        report = []
+
+        if space_rate < SPACE_THRESHOLD:
+            report.append(f"{len(report) + 1}. Обратите внимание на количество воздуха, на изображении слишком мало пустого места.")
+
+        if tabular_check < TABULAR_CRIT_THRESHOLD:
+            report.append(f"{len(report) + 1}. Обратите внимание на отступы, постарайтесь придерживаться равномерной сетки.")
+        elif tabular_check < TABULAR_WARN_THRESHOLD:
+            report.append(f"{len(report) + 1}. Обратите чуть больше внимания на отступы, похоже, что они разные по вертикали и горизонтали.")
+
+        if text_length > TEXT_LEN_THRESHOLD:
+            report.append(f"{len(report) + 1}. На изображении слишком много текста, избыток информации плохо сказывается на качестве дизайна.")
+
+        if report:
+            report = [
+                "Рекомендации:"
+            ] + report     
+
+        report = [
+            f"Количество воздуха: {int(space_rate * 100)}%",
+            f"Согласованность отступов: {int(100 * tabular_check)}%",
+        ] + report
 
         await context.bot.send_photo(
             reply_to_message_id=update.message.id,
             chat_id=update.effective_chat.id,
             photo=tmp.name,
-            caption=os.linesep.join(
-                [
-                    f"Количество воздуха: {int(space_rate * 100)}%",
-                    f"Согласованность отступов: {100 * tabular_check // 4}%",
-                ]
+            caption=(os.linesep + os.linesep).join(
+                report
             ),
         )
 

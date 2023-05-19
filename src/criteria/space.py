@@ -18,8 +18,13 @@ def space(source: Image):
 
 def find_expanded_edges(image: np.ndarray, min_dim: int) -> np.ndarray:
     edges = cv2.Canny(image, 100, 200)
-    kernel_size = max(min_dim // 50, 1) * 2 + 1
-    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    kernel_size = max(min_dim // 30, 1) * 2 + 1
+    kernel = np.zeros((kernel_size, kernel_size), np.uint8)
+    for i in range(kernel_size):
+        for j in range(kernel_size):
+            if (i - kernel_size / 2) ** 2 + (j - kernel_size / 2) ** 2 <= (kernel_size / 2) ** 2:
+                kernel[i, j] = 1
+
     dilated_edges = cv2.dilate(edges, kernel)
 
     return dilated_edges
