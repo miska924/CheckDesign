@@ -64,21 +64,21 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE, load_functio
 
             if space_rate < SPACE_THRESHOLD:
                 report.append(
-                    f"{len(report) + 1}. Обратите внимание на количество воздуха, на изображении слишком мало пустого места."
+                    f"{len(report) + 1}. Обратите внимание на количество воздуха, похоже на изображении слишком мало свободного места."
                 )
 
             if tabular_check < TABULAR_CRIT_THRESHOLD:
                 report.append(
-                    f"{len(report) + 1}. Обратите внимание на отступы, постарайтесь придерживаться равномерной сетки."
+                    f"{len(report) + 1}. Обратите внимание на отступы, похоже они везде разные."
                 )
             elif tabular_check < TABULAR_WARN_THRESHOLD:
                 report.append(
-                    f"{len(report) + 1}. Обратите чуть больше внимания на отступы, похоже, что они разные по вертикали и горизонтали."
+                    f"{len(report) + 1}. Обратите чуть больше внимания на отступы, возможно они отличаются."
                 )
 
             if text_length > TEXT_LEN_THRESHOLD:
                 report.append(
-                    f"{len(report) + 1}. На изображении слишком много текста, избыток информации плохо сказывается на качестве дизайна."
+                    f"{len(report) + 1}. На изображении слишком много текста, избыток информации плохо сказывается на её восприятии."
                 )
 
             if report:
