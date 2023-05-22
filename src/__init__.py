@@ -118,10 +118,12 @@ async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=os.linesep.join([
-            "Отправь мне баннер, а я его проверю.",
-            "Не забудь заглянуть к нам в канал https://t.me/check_design",
-        ]
+        text=os.linesep.join(
+            [
+                "Отправь мне баннер, а я его проверю.",
+                "Не забудь заглянуть к нам в канал https://t.me/check_design",
+            ]
+        ),
     )
 
 
